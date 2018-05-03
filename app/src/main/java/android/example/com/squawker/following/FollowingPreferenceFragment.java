@@ -15,34 +15,53 @@
 */
 package android.example.com.squawker.following;
 
+import android.content.SharedPreferences;
 import android.example.com.squawker.R;
 import android.os.Bundle;
+import android.preference.SwitchPreference;
+import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
+import android.support.v7.preference.SwitchPreferenceCompat;
+
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
 
 
 /**
  * Shows the list of instructors you can follow
  */
-// TODO (1) Implement onSharedPreferenceChangeListener
-public class FollowingPreferenceFragment extends PreferenceFragmentCompat {
+public class FollowingPreferenceFragment
+        extends PreferenceFragmentCompat
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private final static String LOG_TAG = FollowingPreferenceFragment.class.getSimpleName();
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        Preference mPreferece = findPreference(s);
+
+        if(mPreferece != null && mPreferece instanceof SwitchPreferenceCompat) {
+            boolean isFollowing = sharedPreferences.getBoolean(s, false);
+            if(isFollowing) {
+                FirebaseMessaging.getInstance().subscribeToTopic(s);
+            } else {
+                FirebaseMessaging.getInstance().unsubscribeFromTopic(s);
+            }
+        }
+
+    }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         // Add visualizer preferences, defined in the XML file in res->xml->preferences_squawker
         addPreferencesFromResource(R.xml.following_squawker);
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
-    // TODO (2) When a SharedPreference changes, check which preference it is and subscribe or
-    // un-subscribe to the correct topics.
 
-    // Ex. FirebaseMessaging.getInstance().subscribeToTopic("key_lyla");
-    // subscribes to Lyla's squawks.
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
-    // HINT: Checkout res->xml->following_squawker.xml. Note how the keys for each of the
-    // preferences matches the topic to subscribe to for each instructor.
-
-    // TODO (3) Make sure to register and unregister this as a Shared Preference Change listener, in
-    // onCreate and onDestroy.
-
+        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+    }
 }
