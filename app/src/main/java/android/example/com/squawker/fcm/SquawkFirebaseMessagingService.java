@@ -32,6 +32,7 @@ public class SquawkFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Map<String, String> messageReceived = remoteMessage.getData();
+
         if(messageReceived.size() > 0) {
             Log.d("MESSAGE_RECEIVED", "Message received");
             sendNotification(messageReceived);
@@ -51,7 +52,7 @@ public class SquawkFirebaseMessagingService extends FirebaseMessagingService {
         String author = data.get(JSON_KEY_AUTHOR);
         String message = data.get(JSON_KEY_MESSAGE);
         if(message.length() > MAXIMUM_MESSAGE_LENGTH) {
-            message = message.substring(0, MAXIMUM_MESSAGE_LENGTH);
+            message = message.substring(0, MAXIMUM_MESSAGE_LENGTH) + "\u2026";
         }
 
         Uri defaultSoudUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
